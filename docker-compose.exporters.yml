@@ -1,0 +1,59 @@
+version: '3'
+
+networks:
+  monitor-net:
+    external: 
+        name: app-net
+
+services:
+
+  redis_exporter:
+    image: oliver006/redis_exporter:v1.19.0-alpine
+    container_name: redis_exporter
+    ports:
+      - ${REDIS_EXPORT_PORT:-9121}:9121
+    #command: ./redis_exporter --redis.password='password' --redis.addr='http://redis-server:6379'
+    entrypoint: ./redis_exporter -redis.password 123456 -redis.addr= -debug
+    networks:
+      - monitor-net
+    labels:
+      org.label-schema.group: "monitoring"
+
+  mongodb_exporter:
+    restart: 'always'
+    #image: gpuliyar/mongo-exporter
+    build: #/mongodb_exporter
+      context: ./mongo-exporter
+      args: 
+        - MONGO_SERVICE=${MONGO_SERVICE}
+        - MONGO_PORT=${MONGO_PORT}
+    container_name: mongodb_exporter
+    ports:
+      - ${MONGO_EXPORT_PORT:-9001}:9001
+    environment:
+      - MONGO_SERVICE=${MONGO_SERVICE}
+      - MONGO_PORT=${MONGO_PORT}
+    networks:
+      monitor-net:
+        aliases:
+          - 'mongodb_exporter'    
+    labels:
+      org.label-schema.group: "monitoring"    
+    
+  postgres_exporter:
+    image: wrouesnel/postgres_exporter:latest # released 17-2-2021 
+    container_name: postgres_exporter
+    volumes:
+      - ./queries.yaml:/etc/postgres_exporter/queries.yaml
+    deploy:
+      mode: replicated
+      replicas: 1
+    ports:
+      - ${POSTGRE_EXPORT_PORT:-9187}:9187
+    environment:
+      - DATA_SOURCE_NAME=${DATA_SOURCE_NAME}
+      - PG_EXPORTER_EXTEND_QUERY_PATH=/etc/postgres_exporter/queries.yaml
+    networks:
+      - monitor-net
+    labels:
+      org.label-schema.group: "monitoring"

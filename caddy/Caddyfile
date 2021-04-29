@@ -1,0 +1,28 @@
+:9090 {
+    basicauth * {
+		{$ADMIN_USER} JDJhJDE0JExkNVhrbmxJTllnbkdTdFhEckwzVXVhT3I2RWVkZVRxTGM2VE5oOFg3UTNnMldQTDMwUktD
+	}
+    reverse_proxy  * http://prometheus:9090 
+
+}
+
+:9093 {
+    basicauth * {
+		{$ADMIN_USER} JDJhJDE0JExkNVhrbmxJTllnbkdTdFhEckwzVXVhT3I2RWVkZVRxTGM2VE5oOFg3UTNnMldQTDMwUktD
+	}
+    reverse_proxy  * http://alertmanager:9093 
+
+}
+
+:9091 {
+    basicauth * {
+		{$ADMIN_USER} JDJhJDE0JExkNVhrbmxJTllnbkdTdFhEckwzVXVhT3I2RWVkZVRxTGM2VE5oOFg3UTNnMldQTDMwUktD
+	}
+    reverse_proxy  * http://pushgateway:9091 
+
+}
+
+:3000 {
+    reverse_proxy  * http://grafana:3000 
+
+}

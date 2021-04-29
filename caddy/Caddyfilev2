@@ -1,0 +1,44 @@
+172.20.20.12:9090 {
+    basicauth /* {
+		{$ADMIN_USER} {$ADMIN_PASSWORD}
+	}
+    reverse_proxy  / prometheus:9090 
+
+    handle_errors {
+		file_server
+	}
+    tls internal 
+}
+
+172.20.20.12:9093 {
+    basicauth /* {
+		{$ADMIN_USER} {$ADMIN_PASSWORD}
+	}
+    reverse_proxy  / alertmanager:9093 
+
+    handle_errors {
+		file_server
+	}
+    tls internal 
+}
+
+172.20.20.12:9091 {
+    basicauth /* {
+		{$ADMIN_USER} {$ADMIN_PASSWORD}
+	}
+    reverse_proxy  / pushgateway:9091 
+
+    handle_errors {
+		file_server
+	}
+    tls internal 
+}
+
+172.20.20.12:3000 {
+    reverse_proxy  / grafana:3000 
+
+    handle_errors {
+		file_server
+	}
+    tls internal 
+}

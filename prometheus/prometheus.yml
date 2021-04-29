@@ -1,0 +1,102 @@
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+      monitor: 'prometheus-stack-monitor'
+
+# Load and evaluate rules in this file every 'evaluation_interval' seconds.
+rule_files:
+  # - "first.rules"
+  # - "second.rules"
+  - "postgresql.yml"
+  - "alert.rules"
+      
+scrape_configs:
+
+# nodeexporter
+  - job_name: 'nodeexporter'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['nodeexporter:9100']
+
+  - job_name: 'cadvisor'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  - job_name: 'prometheus'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'pushgateway'
+    scrape_interval: 10s
+    honor_labels: true
+    static_configs:
+      - targets: ['pushgateway:9091']
+
+# Redis
+  - job_name: redis_exporter
+    static_configs:
+    - targets: ['redis_exporter:9121']
+        
+  - job_name: 'redis_exporter_targets'
+    static_configs:
+      - targets:
+        - redis://redis:6379
+    metrics_path: /scrape
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: redis_exporter:9121
+
+# Mongo
+  - job_name: mongodb
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 30s
+    honor_labels: true
+    static_configs:
+      - targets: ['mongodb_exporter:9001']
+
+# Postgre
+  - job_name: 'postgres-exporter'
+    metrics_path: '/metrics'
+    honor_labels: true
+    scrape_interval: 300s
+    scrape_timeout: 60s
+    static_configs:
+      - targets: ['postgres_exporter:9187']
+
+#alerting:
+#  alertmanagers:
+#  - scheme: http
+#    static_configs:
+#    - targets: 
+#      - 'alertmanager:9093'
+
+### Config for spring boot actuator
+
+#  - job_name: 'spring-actuator'
+#    metrics_path: '/actuator/prometheus'
+#    scrape_interval: 5s
+#    static_configs:
+#    - targets: ['localhost:8092']
+#    basic_auth:
+#      username: 'actuator'
+#      password: 'actuator'
+#  - job_name: 'spring-actuator2'
+#    metrics_path: '/auth-server/actuator/prometheus'
+#    scrape_interval: 5s
+#    static_configs:
+#    - targets: ['localhost:8093']
+#    basic_auth:
+#      username: 'actuator'
+#      password: 'actuator'
